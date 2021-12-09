@@ -1,0 +1,39 @@
+﻿
+@page "/Osoba"
+@using Microsoft.AspNetCore.SignalR.Client
+@using Teeest2.Shared
+@inject NavigationManager NM
+
+
+<h3>OsobaPage</h3>
+<EditForm Model=Osoba OnSubmit=Slanje>
+        <InputText @bind-Value=Osoba.Name />
+        <InputText @bind-Value=Osoba.Surname />
+        <button type="submit"  >Send</button>
+</EditForm>
+
+
+@code {
+    private HubConnection _hubic;
+    protected override async Task OnInitializedAsync()
+    {
+        _hubic = new HubConnectionBuilder()
+            .WithUrl(NM.BaseUri + "osoba")
+            .Build();
+        await _hubic.StartAsync();
+
+
+
+    }
+
+    public Osoba Osoba { get; set; } = new();
+    private async void Slanje()
+    {
+        await _hubic.SendAsync("Metoda",Osoba);
+        Osoba = new();
+        StateHasChanged();
+    }
+
+
+
+}
