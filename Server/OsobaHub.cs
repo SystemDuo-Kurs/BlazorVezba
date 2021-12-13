@@ -10,12 +10,23 @@ namespace Teeest2.Server
         {
             Console.WriteLine($"{o.Name} {o.Surname}");
             Console.WriteLine("Dobri momci");
-            _db.Add(o);
+            _db.Update(o);
             _db.SaveChanges();
+            Posalji();
         } 
         public OsobaHub(DB dB) 
         { 
             _db = dB;
+        }
+        public async void Posalji()
+        {
+         await   Clients.Caller.SendAsync("Send", _db.Osobe.ToList());
+        }
+        public void Brisanje(Osoba osoba)
+        {
+            _db.Remove(osoba);
+            _db.SaveChanges();
+            Posalji();
         }
     }
 }

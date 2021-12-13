@@ -5,24 +5,62 @@
 @inject NavigationManager NM
 
 
+
 <h3>OsobaPage</h3>
 <EditForm Model=Osoba OnSubmit=Slanje>
         <InputText @bind-Value=Osoba.Name />
         <InputText @bind-Value=Osoba.Surname />
         <button type="submit"  >Send</button>
 </EditForm>
+@if (Osobe.Any())
+{
+    <table>
+        <thead>
+            <td>Id</td>
+            <td>Ime</td>
+            <td>Prezime</td>
+            <td>Brisanje</td>
+            <td>Izmena</td>
+        </thead>
+        @foreach (Osoba o in Osobe)
+        {
+            <tr>
+                <td>@o.Id</td>
+                <td>@o.Name</td>
+                <td>@o.Surname</td>
+                <td><button class="btn-danger" @onclick="()=> Brisanje(o)">Brisanje</button></td>
+                <td><button class="btn-primary" @onclick="()=> Edit(o)">Izmena</button></td>
+
+            </tr>
+        }
+    </table>
+}
 
 
 @code {
+    private List<Osoba> Osobe { get; set; } = new();
+    private void Brisanje(Osoba osoba)
+    {
+        _hubic.SendAsync("Brisanje", osoba);
+    }
+    private void Edit(Osoba osoba)
+    {
+        Osoba = osoba;
+        StateHasChanged();
+
+    }
+
+
     private HubConnection _hubic;
     protected override async Task OnInitializedAsync()
     {
         _hubic = new HubConnectionBuilder()
             .WithUrl(NM.BaseUri + "osoba")
             .Build();
+        _hubic.On<List<Osoba>>("Send", lista => Primi(lista));
+
         await _hubic.StartAsync();
-
-
+        await _hubic.SendAsync("Posalji");
 
     }
 
@@ -31,6 +69,11 @@
     {
         await _hubic.SendAsync("Metoda",Osoba);
         Osoba = new();
+        StateHasChanged();
+    }
+    public void Primi(List<Osoba> osobe)
+    {
+        Osobe = osobe;
         StateHasChanged();
     }
 
